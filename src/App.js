@@ -13,7 +13,8 @@ import {
   IsPuzzleSolved
 } from './selectors';
 
-import { TILE_COUNT, CANVAS_WIDTH } from './utils/constants';
+import { getOriginalTiles, randomiseTiles, checkIfPuzzleSolved } from './utils';
+import { CANVAS_WIDTH } from './utils/constants';
 
 class App extends Component {
   state = {
@@ -34,17 +35,8 @@ class App extends Component {
 
   setBoard = () => {
     const { dispatch } = this.props;
-    const puzzleTiles = [];
-    for (let i = 0; i < TILE_COUNT; i++) {
-      puzzleTiles[i] = [];
-      for (let j = 0; j < TILE_COUNT; j++) {
-        puzzleTiles[i][j] = {
-          x: TILE_COUNT - 1 - i,
-          y: TILE_COUNT - 1 - j,
-          empty: i === 0 && j === 0
-        };
-      }
-    }
+    // shuffle the tiles
+    const puzzleTiles = randomiseTiles(getOriginalTiles());
 
     dispatch(setPuzzleTiles(puzzleTiles));
   };
@@ -61,15 +53,14 @@ class App extends Component {
     newPuzzleTiles[toLocation.x][toLocation.y].empty = false;
 
     dispatch(setPuzzleTiles(newPuzzleTiles));
-  };
 
-  onPuzzleSolved = () => {
-    const { dispatch } = this.props;
-    dispatch(setPuzzleSolved());
+    const isPuzzleSolved = checkIfPuzzleSolved(newPuzzleTiles);
+    if (isPuzzleSolved) {
+      dispatch(setPuzzleSolved());
+    }
   };
 
   onShowHint = () => {
-    console.log('hehehe');
     this.toggleHint();
     this.toggleHintTimeout = setTimeout(this.toggleHint, 2000);
   };
@@ -92,11 +83,11 @@ class App extends Component {
           />
           {puzzleTiles && puzzleTiles.length ? (
             <PuzzleBoard
+              isSolved={isPuzzleSolved}
               image={this.puzzleImage}
               puzzleTiles={puzzleTiles}
               emptyTileLocation={emptyTileLocation}
               onSlideTile={this.onSlideTile}
-              onPuzzleSolved={this.onPuzzleSolved}
             />
           ) : null}
         </div>

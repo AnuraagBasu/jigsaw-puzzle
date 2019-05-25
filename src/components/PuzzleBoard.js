@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import _isEqual from 'lodash/isEqual';
 
 import { TILE_COUNT, CANVAS_WIDTH } from '../utils/constants';
+import { getOriginalTiles } from '../utils';
 
 class PuzzleBoard extends Component {
   state = {
@@ -17,9 +18,12 @@ class PuzzleBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { puzzleTiles } = this.props;
+    const { puzzleTiles, isSolved } = this.props;
     if (!_isEqual(puzzleTiles, prevProps.puzzleTiles)) {
       this.drawBoard();
+    }
+    if (!prevProps.isSolved && isSolved) {
+      this.drawActualImage();
     }
   }
 
@@ -30,13 +34,16 @@ class PuzzleBoard extends Component {
   };
 
   drawBoard = () => {
-    const {
-      image: puzzleImage,
-      puzzleTiles,
-      emptyTileLocation,
-      onPuzzleSolved
-    } = this.props;
+    const { image: puzzleImage, puzzleTiles, emptyTileLocation } = this.props;
+    this.drawTiles(puzzleImage, puzzleTiles, emptyTileLocation);
+  };
 
+  drawActualImage = () => {
+    const { image } = this.props;
+    this.drawTiles(image, getOriginalTiles());
+  };
+
+  drawTiles = (puzzleImage, puzzleTiles, emptyTileLocation = {}) => {
     const canvasElement = this.canvasReference;
     const context = canvasElement.getContext('2d');
     const boardSize = canvasElement.width;
@@ -68,9 +75,6 @@ class PuzzleBoard extends Component {
         }
       }
     }
-
-    const isSolved = this.checkSolved(puzzleTiles, TILE_COUNT);
-    isSolved && onPuzzleSolved();
   };
 
   calculateDistance = (fromLocation, toLocation) => {
@@ -95,22 +99,12 @@ class PuzzleBoard extends Component {
     }
   };
 
-  checkSolved = (boardParts, tileCount) => {
-    let isSolved = true;
-    for (let i = 0; i < tileCount; ++i) {
-      for (let j = 0; j < tileCount; ++j) {
-        if (boardParts[i][j].x !== i || boardParts[i][j].y !== j) {
-          isSolved = false;
-        }
-      }
-    }
-
-    return isSolved;
-  };
-
   render() {
+    const { isSolved } = this.props;
+
     return (
       <canvas
+        className={isSolved ? 'solved' : ''}
         ref={this.storeCanvasReference}
         width={CANVAS_WIDTH}
         height={CANVAS_WIDTH}
@@ -120,11 +114,11 @@ class PuzzleBoard extends Component {
 }
 
 PuzzleBoard.propTypes = {
+  isSolved: PropTypes.bool,
   image: PropTypes.object,
   puzzleTiles: PropTypes.array,
   emptyTileLocation: PropTypes.object,
-  onSlideTile: PropTypes.func,
-  onPuzzleSolved: PropTypes.func
+  onSlideTile: PropTypes.func
 };
 
 export default PuzzleBoard;
