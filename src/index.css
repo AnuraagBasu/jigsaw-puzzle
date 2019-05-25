@@ -24,10 +24,14 @@ code {
   margin-top: 40px;
 }
 #playGround canvas {
-  border: 20px solid #fdd835;
+  border: 20px solid #4a4a4a;
   border-radius: 8px;
   background-color: #eee;
 }
+#playGround canvas.solved {
+  animation: scaleUp 0.7s ease-in-out;
+}
+
 #playGround > div:first-child {
   position: relative;
   overflow: hidden;
@@ -72,4 +76,16 @@ code {
 .actionBtn.reset,
 .actionBtn.hint {
   margin-top: 20px;
+}
+
+@keyframes scaleUp {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
