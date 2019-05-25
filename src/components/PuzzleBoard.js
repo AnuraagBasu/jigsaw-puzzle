@@ -30,7 +30,12 @@ class PuzzleBoard extends Component {
   };
 
   drawBoard = () => {
-    const { image: puzzleImage, puzzleTiles, emptyTileLocation } = this.props;
+    const {
+      image: puzzleImage,
+      puzzleTiles,
+      emptyTileLocation,
+      onPuzzleSolved
+    } = this.props;
 
     const canvasElement = this.canvasReference;
     const context = canvasElement.getContext('2d');
@@ -53,13 +58,19 @@ class PuzzleBoard extends Component {
             tileWidth,
             tileWidth
           );
+          context.strokeStyle = '#4a4a4a';
+          context.strokeRect(
+            i * tileWidth,
+            j * tileWidth,
+            tileWidth,
+            tileWidth
+          );
         }
       }
     }
 
-    this.setState({
-      isSolved: this.checkSolved(puzzleTiles, TILE_COUNT)
-    });
+    const isSolved = this.checkSolved(puzzleTiles, TILE_COUNT);
+    isSolved && onPuzzleSolved();
   };
 
   calculateDistance = (fromLocation, toLocation) => {
@@ -100,7 +111,6 @@ class PuzzleBoard extends Component {
   render() {
     return (
       <canvas
-        id="canvas"
         ref={this.storeCanvasReference}
         width={CANVAS_WIDTH}
         height={CANVAS_WIDTH}
@@ -113,7 +123,8 @@ PuzzleBoard.propTypes = {
   image: PropTypes.object,
   puzzleTiles: PropTypes.array,
   emptyTileLocation: PropTypes.object,
-  onSlideTile: PropTypes.func
+  onSlideTile: PropTypes.func,
+  onPuzzleSolved: PropTypes.func
 };
 
 export default PuzzleBoard;

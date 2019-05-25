@@ -3,6 +3,9 @@ import { createSelector } from 'reselect';
 export const getPuzzleTiles = state => {
   return state.puzzleState.puzzleTiles;
 };
+export const IsPuzzleSolved = state => {
+  return state.puzzleState.isSolved;
+};
 
 export const getEmptyTileLocation = createSelector(
   [getPuzzleTiles],

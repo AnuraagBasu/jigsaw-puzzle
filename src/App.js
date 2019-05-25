@@ -5,18 +5,32 @@ import _cloneDeep from 'lodash/cloneDeep';
 
 import PuzzleBoard from './components/PuzzleBoard';
 
-import { setPuzzleTiles } from './actions';
+import { setPuzzleTiles, setPuzzleSolved, resetPuzzleSolved } from './actions';
 
-import { getPuzzleTiles, getEmptyTileLocation } from './selectors';
+import {
+  getPuzzleTiles,
+  getEmptyTileLocation,
+  IsPuzzleSolved
+} from './selectors';
 
-import { TILE_COUNT } from './utils/constants';
+import { TILE_COUNT, CANVAS_WIDTH } from './utils/constants';
 
 class App extends Component {
+  state = {
+    showHint: false
+  };
+
   componentDidMount() {
     this.puzzleImage = new Image();
     this.puzzleImage.src = '/assets/images/monks.jpg';
     this.puzzleImage.addEventListener('load', this.setBoard, false);
   }
+
+  componentWillUnmount() {
+    this.toggleHintTimeout && clearTimeout(this.toggleHintTimeout);
+  }
+
+  toggleHint = () => this.setState({ showHint: !this.state.showHint });
 
   setBoard = () => {
     const { dispatch } = this.props;
@@ -49,19 +63,52 @@ class App extends Component {
     dispatch(setPuzzleTiles(newPuzzleTiles));
   };
 
+  onPuzzleSolved = () => {
+    const { dispatch } = this.props;
+    dispatch(setPuzzleSolved());
+  };
+
+  onShowHint = () => {
+    console.log('hehehe');
+    this.toggleHint();
+    this.toggleHintTimeout = setTimeout(this.toggleHint, 2000);
+  };
+
+  onResetPuzzle = () => {
+    this.setBoard();
+    this.props.dispatch(resetPuzzleSolved());
+  };
+
   render() {
-    const { puzzleTiles, emptyTileLocation } = this.props;
+    const { puzzleTiles, emptyTileLocation, isPuzzleSolved } = this.props;
+    const { showHint } = this.state;
 
     return (
-      <div className="App">
-        {puzzleTiles && puzzleTiles.length ? (
-          <PuzzleBoard
-            image={this.puzzleImage}
-            puzzleTiles={puzzleTiles}
-            emptyTileLocation={emptyTileLocation}
-            onSlideTile={this.onSlideTile}
+      <div id="playGround">
+        <div>
+          <div
+            className={`preview ${showHint ? 'show' : ''}`}
+            style={{ width: CANVAS_WIDTH, height: CANVAS_WIDTH }}
           />
-        ) : null}
+          {puzzleTiles && puzzleTiles.length ? (
+            <PuzzleBoard
+              image={this.puzzleImage}
+              puzzleTiles={puzzleTiles}
+              emptyTileLocation={emptyTileLocation}
+              onSlideTile={this.onSlideTile}
+              onPuzzleSolved={this.onPuzzleSolved}
+            />
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className={`actionBtn ${isPuzzleSolved ? 'reset' : 'hint'} ${
+            showHint ? 'disable' : ''
+          }`}
+          onClick={!isPuzzleSolved ? this.onShowHint : this.onResetPuzzle}
+        >
+          {isPuzzleSolved ? 'Reset' : 'Hint'}
+        </button>
       </div>
     );
   }
@@ -70,13 +117,15 @@ class App extends Component {
 App.propTypes = {
   puzzleTiles: PropTypes.array,
   emptyTileLocation: PropTypes.object,
+  isPuzzleSolved: PropTypes.bool,
   dispatch: PropTypes.func
 };
 
 const mapStateToProps = state => {
   return {
     puzzleTiles: getPuzzleTiles(state),
-    emptyTileLocation: getEmptyTileLocation(state)
+    emptyTileLocation: getEmptyTileLocation(state),
+    isPuzzleSolved: IsPuzzleSolved(state)
   };
 };
 const mapDispatchToProps = dispatch => {
